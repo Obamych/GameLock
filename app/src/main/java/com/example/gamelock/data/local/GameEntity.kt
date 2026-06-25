@@ -19,7 +19,8 @@ data class GameEntity(
     val userRating: Float = 0f,
     val userReview: String = "",
     val overallRating: Double = 0.0,
-    val descriptionOriginal: String? = null
+    val descriptionOriginal: String? = null,
+    val lastAccessed: Long? = null
 )
 
 fun GameEntity.toDomain(): Game = Game(
@@ -32,7 +33,8 @@ fun GameEntity.toDomain(): Game = Game(
     userStatus = GameStatus.valueOf(userStatus),
     userRating = userRating, userReview = userReview,
     overallRating = if (overallRating == 0.0) rating * 2 else overallRating,
-    descriptionOriginal = descriptionOriginal ?: description
+    descriptionOriginal = descriptionOriginal ?: description,
+    lastAccessed = lastAccessed
 )
 
 fun Game.toEntity(): GameEntity = GameEntity(
@@ -45,5 +47,6 @@ fun Game.toEntity(): GameEntity = GameEntity(
     userStatus = userStatus.name,
     userRating = userRating, userReview = userReview,
     overallRating = overallRating,
-    descriptionOriginal = descriptionOriginal
+    descriptionOriginal = descriptionOriginal,
+    lastAccessed = lastAccessed
 )

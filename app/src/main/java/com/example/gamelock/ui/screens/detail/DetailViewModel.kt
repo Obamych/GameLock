@@ -29,7 +29,10 @@ class DetailViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             _uiState.value = DetailUiState.Loading
             repository.getGameDetails(gameId).fold(
-                onSuccess = { _uiState.value = DetailUiState.Success(it) },
+                onSuccess = {
+                    repository.updateLastAccessed(gameId)
+                    _uiState.value = DetailUiState.Success(it)
+                },
                 onFailure = { _uiState.value = DetailUiState.Error(it.message ?: "Ошибка") }
             )
         }

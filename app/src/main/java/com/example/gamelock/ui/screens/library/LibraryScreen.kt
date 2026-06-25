@@ -375,6 +375,14 @@ private fun LibraryGameCard(
                         overflow = TextOverflow.Ellipsis
                     )
                 }
+                game.lastAccessed?.let { ts ->
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        relativeTime(ts),
+                        fontSize = 10.sp,
+                        color = TextMuted
+                    )
+                }
                 if (game.userRating > 0f) {
                     Spacer(Modifier.height(2.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -418,4 +426,21 @@ private fun AnimatedLibraryGameCard(
             scaleY = 0.9f + 0.1f * animProgress.value
         }
     )
+}
+
+private fun relativeTime(timestamp: Long): String {
+    val now = System.currentTimeMillis()
+    val diff = now - timestamp
+    val minutes = diff / 60_000
+    val hours = minutes / 60
+    val days = hours / 24
+    return when {
+        minutes < 1 -> "только что"
+        minutes < 60 -> "${minutes} мин. назад"
+        hours < 24 -> "${hours} ч. назад"
+        days == 1L -> "вчера"
+        days < 7 -> "${days} дн. назад"
+        days < 30 -> "${days / 7} нед. назад"
+        else -> "${days / 30} мес. назад"
+    }
 }

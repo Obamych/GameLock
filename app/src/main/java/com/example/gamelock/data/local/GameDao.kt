@@ -21,6 +21,9 @@ interface GameDao {
     @Query("UPDATE games SET userStatus=:status, userRating=:rating, userReview=:review WHERE id=:id")
     suspend fun updateUserData(id: Int, status: String, rating: Float, review: String)
 
+    @Query("UPDATE games SET lastAccessed = :ts WHERE id = :id")
+    suspend fun updateLastAccessed(id: Int, ts: Long)
+
     @Delete
     suspend fun deleteGame(game: GameEntity)
 }

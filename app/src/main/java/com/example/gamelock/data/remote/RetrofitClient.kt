@@ -1,5 +1,6 @@
 package com.example.gamelock.data.remote
 
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -26,6 +27,21 @@ object RetrofitClient {
         .hostnameVerifier { _, _ -> true }
         .build()
 
+    private val steamHeadersInterceptor = Interceptor { chain ->
+        val request = chain.request().newBuilder()
+            .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36")
+            .header("Accept", "application/json, text/plain, */*")
+            .header("Accept-Language", "en-US,en;q=0.9")
+            .build()
+        chain.proceed(request)
+    }
+
+    private val okHttpSteamClient = OkHttpClient.Builder()
+        .sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
+        .hostnameVerifier { _, _ -> true }
+        .addInterceptor(steamHeadersInterceptor)
+        .build()
+
     val api: RawgApiService = Retrofit.Builder()
         .baseUrl("https://api.rawg.io/api/")
         .client(okHttpClient)
@@ -35,7 +51,7 @@ object RetrofitClient {
 
     val steamApi: SteamApiService = Retrofit.Builder()
         .baseUrl("https://store.steampowered.com/")
-        .client(okHttpClient)
+        .client(okHttpSteamClient)
         .addConverterFactory(GsonConverterFactory.create())
         .build()
         .create(SteamApiService::class.java)

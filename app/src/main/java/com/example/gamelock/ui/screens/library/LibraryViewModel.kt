@@ -56,7 +56,7 @@ class LibraryViewModel(app: Application) : AndroidViewModel(app) {
         when (sort) {
             SortType.NAME -> result.sortedBy { it.name }
             SortType.RATING -> result.sortedByDescending { it.overallRating }
-            SortType.DATE_ADDED -> result.sortedByDescending { it.id }
+            SortType.DATE_ADDED -> result.sortedByDescending { it.lastAccessed ?: 0L }
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 

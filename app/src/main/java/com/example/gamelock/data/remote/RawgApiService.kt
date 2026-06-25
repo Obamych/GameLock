@@ -39,4 +39,10 @@ interface RawgApiService {
         @Path("id") id: Int,
         @Query("key") apiKey: String
     ): ScreenshotsResponse
+
+    @GET("games/{id}/reddit")
+    suspend fun getGameRedditPosts(
+        @Path("id") id: Int,
+        @Query("key") apiKey: String
+    ): RedditResponse
 }

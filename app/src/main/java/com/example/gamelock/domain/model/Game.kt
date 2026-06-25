@@ -18,7 +18,19 @@ data class Game(
     val ratingSource: String = "RAWG",
     val overallRating: Double = rating * 2,
     val storeRatings: List<StoreRating> = emptyList(),
-    val descriptionOriginal: String? = null
+    val descriptionOriginal: String? = null,
+    val descriptionSource: String = "RAWG",
+    val redditPosts: List<RedditPost> = emptyList(),
+    val steamReviews: List<SteamReview> = emptyList(),
+    val released: String? = null,
+    val website: String? = null,
+    val tags: List<String> = emptyList(),
+    val developers: List<String> = emptyList(),
+    val publishers: List<String> = emptyList(),
+    val esrbRating: String? = null,
+    val lastAccessed: Long? = null,
+    val trailerUrl: String? = null,
+    val clipPreview: String? = null
 )
 
 enum class GameStatus {

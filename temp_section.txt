@@ -1,0 +1,100 @@
+                                             }
+                                         }
+                                     }
+                                 }
+                                3 -> {
+                                    val steamReviews = game.steamReviews
+                                    if (steamReviews.isNotEmpty()) {
+                                        steamReviews.take(20).forEach { review ->
+                                            val emoji = if (review.votedUp) "👍" else "👎"
+                                            Card(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(vertical = 4.dp),
+                                                shape = RoundedCornerShape(12.dp),
+                                                colors = CardDefaults.cardColors(containerColor = DarkCard),
+                                                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                                            ) {
+                                                Column(modifier = Modifier.padding(12.dp)) {
+                                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                                        Text(emoji, fontSize = 16.sp)
+                                                        Spacer(Modifier.width(8.dp))
+                                                        Text(review.authorName,
+                                                            style = MaterialTheme.typography.titleSmall,
+                                                            color = TextPrimary,
+                                                            fontWeight = FontWeight.SemiBold)
+                                                        Spacer(Modifier.weight(1f))
+                                                        Text("+${review.votesUp}",
+                                                            style = MaterialTheme.typography.labelSmall,
+                                                            color = if (review.votedUp) StatusPlaying else TextMuted)
+                                                    }
+                                                    Spacer(Modifier.height(6.dp))
+                                                    Text(review.text,
+                                                        style = MaterialTheme.typography.bodySmall,
+                                                        color = TextMuted,
+                                                        maxLines = 5,
+                                                        overflow = TextOverflow.Ellipsis)
+                                                }
+                                            }
+                                        }
+                                     } else if (game.redditPosts.isNotEmpty()) {
+                                          game.redditPosts.forEach { post ->
+                                             val redditColor = Color(0xFFFF4500)
+                                             Card(
+                                                 modifier = Modifier
+                                                     .fillMaxWidth()
+                                                     .padding(vertical = 4.dp)
+                                                     .clickable {
+                                                         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(post.url))
+                                                         context.startActivity(intent)
+                                                     },
+                                                 shape = RoundedCornerShape(12.dp),
+                                                 colors = CardDefaults.cardColors(containerColor = DarkCard),
+                                                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                                             ) {
+                                                 Column(modifier = Modifier.padding(12.dp)) {
+                                                     Row(verticalAlignment = Alignment.CenterVertically) {
+                                                         Text("📢", fontSize = 14.sp)
+                                                         Spacer(Modifier.width(6.dp))
+                                                         Text(post.title,
+                                                             style = MaterialTheme.typography.titleSmall,
+                                                             color = TextPrimary,
+                                                             fontWeight = FontWeight.SemiBold,
+                                                             maxLines = 2,
+                                                             overflow = TextOverflow.Ellipsis)
+                                                     }
+                                                     post.text?.let { text ->
+                                                         if (text.isNotBlank()) {
+                                                             Spacer(Modifier.height(6.dp))
+                                                             val maxLength = 200
+                                                             val displayText = if (text.length > maxLength) text.take(maxLength) + "..." else text
+                                                             Text(displayText,
+                                                                 style = MaterialTheme.typography.bodySmall,
+                                                                 color = TextMuted,
+                                                                 maxLines = 3,
+                                                                 overflow = TextOverflow.Ellipsis)
+                                                         }
+                                                     }
+                                                     Spacer(Modifier.height(8.dp))
+                                                     Row(verticalAlignment = Alignment.CenterVertically) {
+                                                         Text("👤 ${post.username}",
+                                                             style = MaterialTheme.typography.labelSmall,
+                                                             color = TextMuted)
+                                                         Spacer(Modifier.weight(1f))
+                                                         Text("🗓 ${post.created.take(10)}",
+                                                             style = MaterialTheme.typography.labelSmall,
+                                                             color = TextMuted)
+                                                     }
+                                                 }
+                                             }
+                                         }
+                                     }
+                                 }
+                             }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
