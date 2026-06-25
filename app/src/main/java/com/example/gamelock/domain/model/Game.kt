@@ -10,7 +10,15 @@ data class Game(
     val screenshots: List<String> = emptyList(),
     val userStatus: GameStatus = GameStatus.NONE,
     val userRating: Float = 0f,
-    val userReview: String = ""
+    val userReview: String = "",
+    val steamReviewPct: Int? = null,
+    val steamReviewDesc: String? = null,
+    val metacritic: Int? = null,
+    val storeUrls: List<StoreUrl> = emptyList(),
+    val ratingSource: String = "RAWG",
+    val overallRating: Double = rating * 2,
+    val storeRatings: List<StoreRating> = emptyList(),
+    val descriptionOriginal: String? = null
 )
 
 enum class GameStatus {

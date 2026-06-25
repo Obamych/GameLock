@@ -3,15 +3,19 @@ package com.example.gamelock.ui.theme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 
 private val GameLockColorScheme = darkColorScheme(
-    primary          = AccentCold,
+    primary          = AccentPrimary,
     onPrimary        = TextPrimary,
-    primaryContainer = Violet20,
-    onPrimaryContainer = AccentLight,
+    primaryContainer = VioletDeep,
+    onPrimaryContainer = AccentNeon,
 
-    secondary        = Violet60,
+    secondary        = VioletMedium,
     onSecondary      = TextPrimary,
+
+    tertiary         = AccentNeon,
+    onTertiary       = DarkBg,
 
     background       = DarkBg,
     onBackground     = TextPrimary,
@@ -21,8 +25,11 @@ private val GameLockColorScheme = darkColorScheme(
     surfaceVariant   = DarkCard,
     onSurfaceVariant = TextSecondary,
 
-    tertiary         = AccentLight,
-    onTertiary       = DarkBg
+    outline          = CardBorder,
+    outlineVariant   = VioletDeep,
+
+    error            = Color(0xFFE11D48),
+    onError          = TextPrimary
 )
 
 @Composable

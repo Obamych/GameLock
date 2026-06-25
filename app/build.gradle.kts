@@ -39,6 +39,11 @@ android {
     buildFeatures {
         compose = true
     }
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
 }
 
 dependencies {
@@ -75,6 +80,9 @@ dependencies {
 
     // Coil
     implementation("io.coil-kt:coil-compose:2.5.0")
+
+    // ML Kit Translate
+    implementation(libs.google.mlkit.translate)
 
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.8.1")
