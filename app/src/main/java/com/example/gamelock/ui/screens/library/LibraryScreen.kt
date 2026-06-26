@@ -6,12 +6,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.foundation.lazy.staggeredgrid.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -42,6 +42,33 @@ fun LibraryScreen(onGameClick: (Int) -> Unit, viewModel: LibraryViewModel = view
     val sortType by viewModel.sortType.collectAsState()
     val selectedStatus by viewModel.selectedStatus.collectAsState()
     var showSortMenu by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var gameToDelete by remember { mutableStateOf<Game?>(null) }
+
+    if (showDeleteDialog && gameToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false; gameToDelete = null },
+            title = { Text("Удалить игру", fontWeight = FontWeight.Bold) },
+            text = { Text("Точно удалить «${gameToDelete!!.name}» из библиотеки?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    gameToDelete?.let { viewModel.deleteGame(it) }
+                    showDeleteDialog = false
+                    gameToDelete = null
+                }) {
+                    Text("Удалить", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false; gameToDelete = null }) {
+                    Text("Отмена")
+                }
+            },
+            containerColor = DarkSurface,
+            titleContentColor = TextPrimary,
+            textContentColor = TextSecondary
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -242,9 +269,9 @@ fun LibraryScreen(onGameClick: (Int) -> Unit, viewModel: LibraryViewModel = view
                 }
             }
         } else {
-            LazyVerticalStaggeredGrid(
-                columns = StaggeredGridCells.Fixed(2),
-                verticalItemSpacing = 12.dp,
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 contentPadding = PaddingValues(
                     start = 16.dp,
@@ -254,15 +281,15 @@ fun LibraryScreen(onGameClick: (Int) -> Unit, viewModel: LibraryViewModel = view
                 ),
                 modifier = Modifier.fillMaxSize()
             ) {
-                items(
-                    items = displayGames,
-                    key = { it.id }
-                ) { game ->
-                    AnimatedLibraryGameCard(
-                        game = game,
-                        index = displayGames.indexOf(game),
-                        onClick = { onGameClick(game.id) }
-                    )
+                displayGames.forEachIndexed { localIndex, game ->
+                    item(key = game.id) {
+                        AnimatedLibraryGameCard(
+                            game = game,
+                            index = localIndex,
+                            onClick = { onGameClick(game.id) },
+                            onDelete = { gameToDelete = game; showDeleteDialog = true }
+                        )
+                    }
                 }
             }
         }
@@ -273,11 +300,13 @@ fun LibraryScreen(onGameClick: (Int) -> Unit, viewModel: LibraryViewModel = view
 private fun LibraryGameCard(
     game: Game,
     onClick: () -> Unit,
+    onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier
             .fillMaxWidth()
+            .height(340.dp)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
@@ -292,38 +321,33 @@ private fun LibraryGameCard(
         ),
         colors = CardDefaults.cardColors(containerColor = DarkCard)
     ) {
-        Box {
-            AsyncImage(
-                model = game.imageUrl,
-                contentDescription = game.name,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(170.dp)
-                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
-                contentScale = ContentScale.Crop
-            )
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f)),
-                            startY = 100f
-                        )
+        Column(modifier = Modifier.weight(1f)) {
+                Box {
+                    AsyncImage(
+                        model = game.imageUrl,
+                        contentDescription = game.name,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(170.dp)
+                            .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
+                        contentScale = ContentScale.Crop
                     )
-                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
-            )
-            Column(
-                modifier = Modifier
-                    .matchParentSize()
-                    .padding(10.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Top
-                ) {
-                    val statusInfo: Pair<String, Color>? = when (game.userStatus) {
+                    IconButton(
+                        onClick = onDelete,
+                        modifier = Modifier.align(Alignment.TopEnd).size(28.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = "Удалить",
+                            tint = Color.White.copy(alpha = 0.8f),
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(10.dp),
+                        horizontalArrangement = Arrangement.Start
+                    ) {
+                        val statusInfo: Pair<String, Color>? = when (game.userStatus) {
                         GameStatus.PLAYING -> Pair("Играю", StatusPlaying)
                         GameStatus.COMPLETED -> Pair("Прошёл", StatusCompleted)
                         GameStatus.BACKLOG -> Pair("В планах", StatusBacklog)
@@ -343,36 +367,35 @@ private fun LibraryGameCard(
                             )
                         }
                     }
-                    Spacer(Modifier.weight(1f))
-                    Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = AccentPrimary.copy(alpha = 0.85f)
-                    ) {
-                        Text(
-                            "💎 ${String.format("%.1f", game.overallRating)}",
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                    }
                 }
-                Spacer(Modifier.weight(1f))
+            }
+            Column(modifier = Modifier.weight(1f).padding(horizontal = 12.dp, vertical = 8.dp)) {
                 Text(
                     game.name,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
-                    color = Color.White,
+                    color = TextPrimary,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
-                game.genres?.let {
+                if (!game.genres.isNullOrBlank()) {
                     Text(
-                        it,
+                        game.genres,
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = 0.7f),
+                        color = TextMuted,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(Modifier.height(4.dp))
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("💎", fontSize = 12.sp)
+                    Spacer(Modifier.width(3.dp))
+                    Text(
+                        String.format("%.1f", game.overallRating),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = VioletLight
                     )
                 }
                 game.lastAccessed?.let { ts ->
@@ -405,12 +428,13 @@ private fun LibraryGameCard(
 private fun AnimatedLibraryGameCard(
     game: Game,
     index: Int,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onDelete: () -> Unit
 ) {
     val animProgress = remember { Animatable(0f) }
 
     LaunchedEffect(Unit) {
-        delay(index * 60L)
+        delay(index * 40L)
         animProgress.animateTo(
             targetValue = 1f,
             animationSpec = tween(durationMillis = 350, easing = FastOutSlowInEasing)
@@ -420,6 +444,7 @@ private fun AnimatedLibraryGameCard(
     LibraryGameCard(
         game = game,
         onClick = onClick,
+        onDelete = onDelete,
         modifier = Modifier.graphicsLayer {
             alpha = animProgress.value
             scaleX = 0.9f + 0.1f * animProgress.value

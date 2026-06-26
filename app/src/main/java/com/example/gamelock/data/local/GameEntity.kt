@@ -1,13 +1,13 @@
 package com.example.gamelock.data.local
 
 import androidx.room.Entity
-import androidx.room.PrimaryKey
 import com.example.gamelock.domain.model.Game
 import com.example.gamelock.domain.model.GameStatus
 
-@Entity(tableName = "games")
+@Entity(tableName = "games", primaryKeys = ["id", "userId"])
 data class GameEntity(
-    @PrimaryKey val id: Int,
+    val id: Int,
+    val userId: Int = 0,
     val name: String,
     val imageUrl: String?,
     val rating: Double,
@@ -37,8 +37,8 @@ fun GameEntity.toDomain(): Game = Game(
     lastAccessed = lastAccessed
 )
 
-fun Game.toEntity(): GameEntity = GameEntity(
-    id = id, name = name, imageUrl = imageUrl,
+fun Game.toEntity(userId: Int = 0): GameEntity = GameEntity(
+    id = id, userId = userId, name = name, imageUrl = imageUrl,
     rating = rating,
     description = descriptionOriginal ?: description,
     descriptionRu = if (description != (descriptionOriginal ?: description)) description else null,

@@ -48,7 +48,7 @@ fun GameCard(
             containerColor = DarkCard
         )
     ) {
-        Box {
+        Column(modifier = Modifier.height(280.dp)) {
             AsyncImage(
                 model = game.imageUrl,
                 contentDescription = game.name,
@@ -58,58 +58,33 @@ fun GameCard(
                     .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
                 contentScale = ContentScale.Crop
             )
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(
-                                Color.Transparent,
-                                Color.Black.copy(alpha = 0.7f)
-                            ),
-                            startY = 100f
-                        )
-                    )
-                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
-            )
-            Column(
-                modifier = Modifier
-                    .matchParentSize()
-                    .padding(10.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = AccentPrimary.copy(alpha = 0.85f)
-                    ) {
-                        Text(
-                            "💎 ${String.format("%.1f", game.overallRating)}",
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                    }
-                }
-                Spacer(Modifier.weight(1f))
+            Column(modifier = Modifier.weight(1f).padding(12.dp)) {
                 Text(
                     game.name,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
-                    color = Color.White,
+                    color = TextPrimary,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
-                game.genres?.let {
+                if (!game.genres.isNullOrBlank()) {
                     Text(
-                        it,
+                        game.genres,
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = 0.7f),
+                        color = TextMuted,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(Modifier.height(4.dp))
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("💎", fontSize = 12.sp)
+                    Spacer(Modifier.width(3.dp))
+                    Text(
+                        String.format("%.1f", game.overallRating),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = VioletLight
                     )
                 }
             }
@@ -207,7 +182,7 @@ fun ShimmerCard(modifier: Modifier = Modifier) {
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .height(220.dp),
+            .height(280.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = DarkCard.copy(alpha = alpha))
     ) { }
@@ -223,7 +198,7 @@ fun AnimatedGameCard(
     val animProgress = remember { Animatable(0f) }
 
     LaunchedEffect(Unit) {
-        delay(index * 60L)
+        delay(index * 40L)
         animProgress.animateTo(
             targetValue = 1f,
             animationSpec = tween(durationMillis = 350, easing = FastOutSlowInEasing)

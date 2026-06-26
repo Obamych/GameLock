@@ -61,9 +61,14 @@ private fun storeEmoji(name: String): String = when {
 fun DetailScreen(gameId: Int, onBack: () -> Unit, viewModel: DetailViewModel = viewModel()) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(gameId) { viewModel.loadGame(gameId) }
+    LaunchedEffect(Unit) {
+        viewModel.saveEvent.collect { snackbarHostState.showSnackbar("Сохранено") }
+    }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Детали игры") },
@@ -500,12 +505,16 @@ fun DetailScreen(gameId: Int, onBack: () -> Unit, viewModel: DetailViewModel = v
                                             )
                                             Spacer(Modifier.height(20.dp))
 
+                                            val canSave = status != GameStatus.NONE && rating > 0f
+
                                             Button(
                                                 onClick = { viewModel.saveGameData(game, status, rating, review) },
+                                                enabled = canSave,
                                                 modifier = Modifier.fillMaxWidth().height(50.dp),
                                                 shape = RoundedCornerShape(16.dp),
                                                 colors = ButtonDefaults.buttonColors(
-                                                    containerColor = AccentPrimary
+                                                    containerColor = AccentPrimary,
+                                                    disabledContainerColor = AccentPrimary.copy(alpha = 0.3f)
                                                 )
                                             ) {
                                                 Text(

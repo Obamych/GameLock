@@ -4,9 +4,11 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gamelock.data.local.AppDatabase
+import com.example.gamelock.data.local.PreferencesManager
 import com.example.gamelock.data.repository.GameRepository
 import com.example.gamelock.domain.model.Game
 import com.example.gamelock.domain.model.GameStatus
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.*
 
 enum class SortType(val displayName: String) {
@@ -25,6 +27,8 @@ data class LibraryStats(
 class LibraryViewModel(app: Application) : AndroidViewModel(app) {
 
     private val repository = GameRepository(AppDatabase.getDatabase(app))
+    private val prefs = PreferencesManager(app)
+    private val userId: Int get() = prefs.currentUserId
 
     private val _sortType = MutableStateFlow(SortType.DATE_ADDED)
     val sortType: StateFlow<SortType> = _sortType.asStateFlow()
@@ -35,7 +39,7 @@ class LibraryViewModel(app: Application) : AndroidViewModel(app) {
     private val _selectedStatus = MutableStateFlow<GameStatus?>(null)
     val selectedStatus: StateFlow<GameStatus?> = _selectedStatus.asStateFlow()
 
-    private val allGames: StateFlow<List<Game>> = repository.getLibraryGames()
+    private val allGames: StateFlow<List<Game>> = repository.getLibraryGames(userId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val stats: StateFlow<LibraryStats> = allGames.map { games ->
@@ -59,6 +63,12 @@ class LibraryViewModel(app: Application) : AndroidViewModel(app) {
             SortType.DATE_ADDED -> result.sortedByDescending { it.lastAccessed ?: 0L }
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun deleteGame(game: Game) {
+        viewModelScope.launch {
+            repository.deleteGame(game, userId)
+        }
+    }
 
     fun onSearchQueryChange(query: String) { _searchQuery.value = query }
 

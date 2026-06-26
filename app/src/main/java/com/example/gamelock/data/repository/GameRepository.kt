@@ -53,24 +53,25 @@ class GameRepository(database: AppDatabase) {
         return variations.distinct()
     }
 
-    suspend fun fetchPopularGames(genreSlug: String? = null): Result<List<Game>> {
+    suspend fun fetchPopularGames(genreSlug: String? = null, page: Int = 1): Result<Triple<List<Game>, Boolean, Int>> {
         return try {
-            val response = api.getPopularGames(Constants.API_KEY, genres = genreSlug)
+            val response = api.getPopularGames(Constants.API_KEY, page = page, pageSize = 20, genres = genreSlug)
             val games = response.results.filter { !hasAdultContent(it) }.map { it.toDomain() }
-            Result.success(games)
+            Result.success(Triple(games, response.next != null, response.count))
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    suspend fun searchGames(query: String): Result<List<Game>> =
+    suspend fun searchGames(query: String): Result<Triple<List<Game>, Boolean, Int>> =
         searchGames(query, SearchFilters())
 
-    suspend fun searchGames(query: String, filters: SearchFilters): Result<List<Game>> {
+    suspend fun searchGames(query: String, filters: SearchFilters, page: Int = 1): Result<Triple<List<Game>, Boolean, Int>> {
         return try {
             val storesParam = filters.storeIds.takeIf { it.isNotEmpty() }?.joinToString(",")
             val response = api.searchGames(
                 query, Constants.API_KEY,
+                page = page, pageSize = 20,
                 stores = storesParam,
                 genres = filters.genreSlug,
                 ordering = filters.sortBy.apiValue
@@ -81,7 +82,7 @@ class GameRepository(database: AppDatabase) {
             if (filters.minRating > 0.0) {
                 games = games.filter { it.overallRating >= filters.minRating }
             }
-            Result.success(games)
+            Result.success(Triple(games, response.next != null, response.count))
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -116,7 +117,7 @@ class GameRepository(database: AppDatabase) {
         return false
     }
 
-    suspend fun getGameDetails(id: Int): Result<Game> {
+    suspend fun getGameDetails(id: Int, userId: Int = 0): Result<Game> {
         return try {
             coroutineScope {
                 val detailDef = async { api.getGameDetails(id, Constants.API_KEY) }
@@ -134,7 +135,7 @@ class GameRepository(database: AppDatabase) {
                 val screenshots = screensDef.await()
                 val redditPosts = redditDef.await()
 
-                val local = dao.getGameById(id)
+                val local = dao.getGameById(id, userId)
 
                 val steamStoreUrl = detail.stores?.firstOrNull { it.store.name.equals("Steam", ignoreCase = true) }?.url
                 val steamAppIdFromUrl = extractSteamAppId(steamStoreUrl)
@@ -199,14 +200,14 @@ class GameRepository(database: AppDatabase) {
                     val result = TranslationService.translate(primaryOriginal, lang)
                     translatedRu = result.getOrNull()
                     if (translatedRu != null) {
-                        val entity = (local ?: GameEntity(
-                            id = detail.id, name = detail.name,
-                            imageUrl = detail.backgroundImage,
-                            rating = detail.rating, description = primaryOriginal,
-                            descriptionRu = translatedRu,
-                            genres = detail.genres?.joinToString(", ") { it.name },
-                            descriptionOriginal = primaryOriginal
-                        )).copy(descriptionRu = translatedRu)
+                val entity = (local ?: GameEntity(
+                    id = detail.id, userId = userId, name = detail.name,
+                    imageUrl = detail.backgroundImage,
+                    rating = detail.rating, description = primaryOriginal,
+                    descriptionRu = translatedRu,
+                    genres = detail.genres?.joinToString(", ") { it.name },
+                    descriptionOriginal = primaryOriginal
+                )).copy(descriptionRu = translatedRu)
                         dao.insertGame(entity)
                     }
                 }
@@ -313,19 +314,19 @@ class GameRepository(database: AppDatabase) {
             .trim()
     }
 
-    fun getLibraryGames(): Flow<List<Game>> =
-        dao.getAllLibraryGames().map { list -> list.map { it.toDomain() } }
+    fun getLibraryGames(userId: Int): Flow<List<Game>> =
+        dao.getAllLibraryGames(userId).map { list -> list.map { it.toDomain() } }
 
-    fun getGamesByStatus(status: GameStatus): Flow<List<Game>> =
-        dao.getGamesByStatus(status.name).map { list -> list.map { it.toDomain() } }
+    fun getGamesByStatus(userId: Int, status: GameStatus): Flow<List<Game>> =
+        dao.getGamesByStatus(userId, status.name).map { list -> list.map { it.toDomain() } }
 
-    suspend fun saveGame(game: Game) = dao.insertGame(game.toEntity())
+    suspend fun saveGame(game: Game, userId: Int = 0) = dao.insertGame(game.toEntity(userId))
 
-    suspend fun updateLastAccessed(gameId: Int) =
-        dao.updateLastAccessed(gameId, System.currentTimeMillis())
+    suspend fun updateLastAccessed(gameId: Int, userId: Int = 0) =
+        dao.updateLastAccessed(gameId, userId, System.currentTimeMillis())
 
-    suspend fun updateUserData(game: Game) =
-        dao.updateUserData(game.id, game.userStatus.name, game.userRating, game.userReview)
+    suspend fun updateUserData(game: Game, userId: Int = 0) =
+        dao.updateUserData(game.id, userId, game.userStatus.name, game.userRating, game.userReview)
 
-    suspend fun deleteGame(game: Game) = dao.deleteGame(game.toEntity())
+    suspend fun deleteGame(game: Game, userId: Int = 0) = dao.deleteGame(game.toEntity(userId))
 }
