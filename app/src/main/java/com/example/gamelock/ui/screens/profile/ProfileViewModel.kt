@@ -46,6 +46,8 @@ class ProfileViewModel(app: Application) : AndroidViewModel(app) {
         loadProfile()
     }
 
+    fun retry() { loadProfile() }
+
     private fun loadProfile() {
         viewModelScope.launch {
             val user = userDao.getUserById(prefs.currentUserId)

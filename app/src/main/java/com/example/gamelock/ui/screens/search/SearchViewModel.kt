@@ -99,7 +99,7 @@ class SearchViewModel(app: Application) : AndroidViewModel(app) {
         onFiltersChanged(_filters.value.copy(sortBy = FilterSort.RELEVANCE))
     }
 
-    private fun refresh() {
+    fun refresh() {
         val q = _query.value
         val f = _filters.value
         if (q.length >= 2 || f.activeCount > 0) {

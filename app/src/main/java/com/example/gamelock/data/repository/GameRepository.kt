@@ -24,6 +24,18 @@ class GameRepository(database: AppDatabase) {
 
     companion object {
         private const val TAG = "GameRepository"
+
+        fun userMessage(e: Exception): String = when {
+            e is java.net.SocketTimeoutException || e.message?.contains("timeout", ignoreCase = true) == true ->
+                "Сервер временно недоступен. Попробуйте позже"
+            e is java.net.UnknownHostException ->
+                "Нет подключения к интернету"
+            e is java.io.IOException ->
+                "Ошибка сети. Проверьте подключение"
+            e.message?.contains("Unable to resolve host", ignoreCase = true) == true ->
+                "Нет подключения к интернету"
+            else -> e.message ?: "Неизвестная ошибка"
+        }
     }
 
     private val dao = database.gameDao()
@@ -59,7 +71,7 @@ class GameRepository(database: AppDatabase) {
             val games = response.results.filter { !hasAdultContent(it) }.map { it.toDomain() }
             Result.success(Triple(games, response.next != null, response.count))
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(Exception(userMessage(e)))
         }
     }
 
@@ -84,7 +96,7 @@ class GameRepository(database: AppDatabase) {
             }
             Result.success(Triple(games, response.next != null, response.count))
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(Exception(userMessage(e)))
         }
     }
 
@@ -276,7 +288,7 @@ class GameRepository(database: AppDatabase) {
                 Result.success(game)
             }
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(Exception(userMessage(e)))
         }
     }
 
@@ -320,7 +332,15 @@ class GameRepository(database: AppDatabase) {
     fun getGamesByStatus(userId: Int, status: GameStatus): Flow<List<Game>> =
         dao.getGamesByStatus(userId, status.name).map { list -> list.map { it.toDomain() } }
 
-    suspend fun saveGame(game: Game, userId: Int = 0) = dao.insertGame(game.toEntity(userId))
+    suspend fun saveGame(game: Game, userId: Int = 0) {
+        val existing = dao.getGameById(game.id, userId)
+        if (existing != null) {
+            dao.updateUserData(game.id, userId, game.userStatus.name, game.userRating, game.userReview)
+            dao.updateLastAccessed(game.id, userId, System.currentTimeMillis())
+        } else {
+            dao.insertGame(game.toEntity(userId).copy(lastAccessed = System.currentTimeMillis()))
+        }
+    }
 
     suspend fun updateLastAccessed(gameId: Int, userId: Int = 0) =
         dao.updateLastAccessed(gameId, userId, System.currentTimeMillis())

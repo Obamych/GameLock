@@ -2,14 +2,39 @@ package com.example.gamelock.data.remote
 
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.io.IOException
 import java.security.cert.X509Certificate
+import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
 import coil.ImageLoader
 import android.content.Context
+
+class RetryInterceptor(private val maxRetries: Int) : Interceptor {
+    override fun intercept(chain: Interceptor.Chain): Response {
+        var retries = 0
+        while (true) {
+            try {
+                val response = chain.proceed(chain.request())
+                if (!response.isSuccessful && response.code >= 500 && retries < maxRetries) {
+                    response.close()
+                    retries++
+                    Thread.sleep(1000L * retries)
+                    continue
+                }
+                return response
+            } catch (e: IOException) {
+                if (retries >= maxRetries) throw e
+                retries++
+                Thread.sleep(1000L * retries)
+            }
+        }
+    }
+}
 
 object RetrofitClient {
     private val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
@@ -25,6 +50,10 @@ object RetrofitClient {
     private val okHttpClient = OkHttpClient.Builder()
         .sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
         .hostnameVerifier { _, _ -> true }
+        .connectTimeout(60, TimeUnit.SECONDS)
+        .readTimeout(60, TimeUnit.SECONDS)
+        .writeTimeout(60, TimeUnit.SECONDS)
+        .addInterceptor(RetryInterceptor(2))
         .build()
 
     private val steamHeadersInterceptor = Interceptor { chain ->
@@ -39,7 +68,11 @@ object RetrofitClient {
     private val okHttpSteamClient = OkHttpClient.Builder()
         .sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
         .hostnameVerifier { _, _ -> true }
+        .connectTimeout(60, TimeUnit.SECONDS)
+        .readTimeout(60, TimeUnit.SECONDS)
+        .writeTimeout(60, TimeUnit.SECONDS)
         .addInterceptor(steamHeadersInterceptor)
+        .addInterceptor(RetryInterceptor(1))
         .build()
 
     val api: RawgApiService = Retrofit.Builder()

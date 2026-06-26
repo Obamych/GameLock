@@ -41,7 +41,7 @@ fun Game.toEntity(userId: Int = 0): GameEntity = GameEntity(
     id = id, userId = userId, name = name, imageUrl = imageUrl,
     rating = rating,
     description = descriptionOriginal ?: description,
-    descriptionRu = if (description != (descriptionOriginal ?: description)) description else null,
+    descriptionRu = if (descriptionOriginal != null && description != descriptionOriginal) description else null,
     genres = genres,
     screenshotsJson = screenshots.joinToString(","),
     userStatus = userStatus.name,

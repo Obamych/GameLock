@@ -95,7 +95,23 @@ fun ProfileScreen(
             }
             is ProfileUiState.Error -> {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(state.message, color = TextMuted)
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("⚠️", fontSize = 40.sp)
+                        Spacer(Modifier.height(12.dp))
+                        Text(
+                            state.message,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = TextMuted
+                        )
+                        Spacer(Modifier.height(20.dp))
+                        Button(
+                            onClick = { viewModel.retry() },
+                            colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text("Повторить", fontWeight = FontWeight.Bold)
+                        }
+                    }
                 }
             }
             is ProfileUiState.Success -> {

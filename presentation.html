@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GameLock — презентация проекта</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #0f0f1a;
+    color: #e0e0e0;
+    line-height: 1.6;
+  }
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: #1a1a2e; }
+  ::-webkit-scrollbar-thumb { background: #7c3aed; border-radius: 4px; }
+
+  .hero {
+    background: linear-gradient(135deg, #1a1a2e 0%, #2d1b69 50%, #1a1a2e 100%);
+    padding: 80px 20px 60px;
+    text-align: center;
+    border-bottom: 2px solid rgba(124, 58, 237, 0.3);
+  }
+  .hero h1 {
+    font-size: 56px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #a78bfa, #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero .subtitle { font-size: 20px; color: #9ca3af; margin-top: 12px; }
+  .hero .badge {
+    display: inline-block;
+    background: rgba(124, 58, 237, 0.2);
+    border: 1px solid rgba(124, 58, 237, 0.4);
+    border-radius: 20px;
+    padding: 6px 18px;
+    font-size: 13px;
+    color: #a78bfa;
+    margin-top: 16px;
+  }
+
+  .nav {
+    position: sticky; top: 0;
+    background: rgba(15, 15, 26, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(124, 58, 237, 0.15);
+    padding: 12px 0; z-index: 10;
+  }
+  .nav-inner {
+    max-width: 1000px; margin: 0 auto;
+    display: flex; gap: 24px; justify-content: center;
+    flex-wrap: wrap; padding: 0 20px;
+  }
+  .nav a { color: #9ca3af; text-decoration: none; font-size: 14px; font-weight: 600; transition: color 0.2s; }
+  .nav a:hover { color: #a78bfa; }
+
+  .container { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+  section { padding: 50px 0; }
+  section h2 { font-size: 28px; font-weight: 700; color: #f0f0f0; margin-bottom: 6px; }
+  section h2 .hash { color: #7c3aed; }
+  section .desc { color: #9ca3af; font-size: 15px; margin-bottom: 28px; }
+  hr.divider {
+    border: none; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(124,58,237,0.3), transparent);
+  }
+  section h3 { font-size: 18px; font-weight: 700; color: #e0e0e0; margin: 24px 0 8px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+
+  .card {
+    background: #1a1a2e;
+    border: 1px solid rgba(124, 58, 237, 0.12);
+    border-radius: 16px; padding: 24px;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .card:hover { border-color: rgba(124, 58, 237, 0.35); transform: translateY(-2px); }
+  .card .icon { font-size: 28px; margin-bottom: 10px; }
+  .card h3 { font-size: 16px; font-weight: 700; color: #f0f0f0; margin-bottom: 6px; }
+  .card h4 { font-size: 14px; font-weight: 600; color: #a78bfa; margin-bottom: 4px; }
+  .card p { font-size: 14px; color: #9ca3af; }
+
+  .tag {
+    display: inline-block;
+    background: rgba(124, 58, 237, 0.15);
+    border: 1px solid rgba(124, 58, 237, 0.2);
+    border-radius: 8px;
+    padding: 4px 12px; font-size: 13px; color: #a78bfa; margin: 3px;
+  }
+
+  /* code block */
+  pre {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    background: #111122;
+    border: 1px solid rgba(124,58,237,0.12);
+    border-radius: 12px;
+    padding: 20px;
+    overflow-x: auto;
+    color: #c0c0d0;
+    margin: 12px 0;
+  }
+  pre .kw { color: #7c3aed; font-weight: 600; }     /* kotlin keyword */
+  pre .ty { color: #22d3ee; }                        /* type */
+  pre .str { color: #a5d6ff; }                       /* string */
+  pre .cm { color: #6b7280; font-style: italic; }    /* comment */
+  pre .fn { color: #fbbf24; }                        /* function name */
+  pre .va { color: #e0e0e0; }                        /* variable */
+  pre .nu { color: #f472b6; }                        /* number */
+
+  .file-path {
+    font-size: 12px;
+    color: #6b7280;
+    font-family: 'JetBrains Mono', monospace;
+    margin-top: 2px;
+    margin-bottom: -8px;
+  }
+  .file-path::before { content: "📁 "; }
+
+  .checklist { list-style: none; }
+  .checklist li {
+    padding: 8px 0; font-size: 14px;
+    display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid rgba(124,58,237,0.06);
+  }
+  .checklist li:last-child { border: none; }
+  .check { color: #22c55e; font-weight: bold; }
+
+  .arch-row {
+    display: flex; flex-direction: column; gap: 4px; margin: 16px 0;
+  }
+  .arch-row .arrow { text-align: center; color: #4b5563; font-size: 18px; }
+
+  .step-card {
+    background: #1a1a2e;
+    border: 1px solid rgba(124,58,237,0.1);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .step-card .num {
+    display: inline-block;
+    background: #7c3aed;
+    color: white;
+    border-radius: 50%;
+    width: 24px; height: 24px;
+    text-align: center;
+    font-size: 13px; font-weight: 700;
+    line-height: 24px;
+    margin-right: 8px;
+  }
+  .step-card h4 { display: inline; font-size: 15px; color: #f0f0f0; }
+  .step-card p { font-size: 13px; color: #9ca3af; margin-top: 4px; }
+
+  footer {
+    text-align: center; padding: 40px 20px;
+    color: #4b5563; font-size: 13px;
+    border-top: 1px solid rgba(124,58,237,0.1);
+  }
+
+  @media (max-width: 600px) {
+    .hero h1 { font-size: 34px; }
+    .hero .subtitle { font-size: 16px; }
+    .nav-inner { gap: 12px; }
+    .nav a { font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>GameLock</h1>
+  <p class="subtitle">Мобильное приложение для поиска, отслеживания и коллекционирования игр</p>
+  <span class="badge">📱 Android — Kotlin — Jetpack Compose</span>
+</div>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#overview">Обзор</a>
+    <a href="#architecture">Архитектура</a>
+    <a href="#data">Data Layer</a>
+    <a href="#viewmodel">ViewModel</a>
+    <a href="#ui">UI Layer</a>
+    <a href="#api">API</a>
+    <a href="#auth">Auth</a>
+    <a href="#features">Фичи</a>
+  </div>
+</nav>
+
+<div class="container">
+
+<!-- ===================== OVERVIEW ===================== -->
+<section id="overview">
+  <h2><span class="hash">#</span> Обзор проекта</h2>
+  <p class="desc">GameLock — Android-приложение на Kotlin + Jetpack Compose. Позволяет искать игры через RAWG API, добавлять их в личную библиотеку с рейтингом и статусом, смотреть детальную информацию (скриншоты, трейлеры, оценки Steam/Metacritic/RAWG).</p>
+
+  <div class="grid">
+    <div class="card">
+      <div class="icon">🔍</div>
+      <h3>Поиск</h3>
+      <p>RAWG API + фильтры (жанры, магазины, сортировка). Страничная пагинация.</p>
+    </div>
+    <div class="card">
+      <div class="icon">📚</div>
+      <h3>Библиотека</h3>
+      <p>Статусы: играю / прошёл / в планах. Пользовательский рейтинг, удаление.</p>
+    </div>
+    <div class="card">
+      <div class="icon">📄</div>
+      <h3>Деталка</h3>
+      <p>Описание, скриншоты, трейлеры, оценки магазинов, теги, разработчики, Reddit.</p>
+    </div>
+    <div class="card">
+      <div class="icon">👤</div>
+      <h3>Профиль</h3>
+      <p>Регистрация/вход (SHA-256). Привязка игр к пользователю. Статистика.</p>
+    </div>
+    <div class="card">
+      <div class="icon">🗃️</div>
+      <h3>Локально</h3>
+      <p>Room SQLite. Композитный ключ (id игры + id пользователя). Flow.</p>
+    </div>
+    <div class="card">
+      <div class="icon">🌐</div>
+      <h3>API</h3>
+      <p>RAWG, Steam, ML Kit Translation. Retrofit 2 + Gson.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ===================== ARCHITECTURE ===================== -->
+<section id="architecture">
+  <h2><span class="hash">#</span> Архитектура MVVM</h2>
+  <p class="desc">Три слоя: UI → ViewModel → Data. Каждый слой отвечает только за своё.</p>
+
+  <!-- Data Flow Diagram -->
+  <div class="card" style="padding: 24px; text-align: center;">
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+      <div style="background:#2d1b69;border:1px solid#7c3aed;border-radius:12px;padding:12px 32px;font-weight:700;color:#a78bfa;font-size:16px;">
+        🖥️ UI Layer — Composable функции
+      </div>
+      <div style="color:#4b5563;">⬇️ collectAsState() ⬆️ events (onClick)</div>
+      <div style="background:#2d1b69;border:1px solid#7c3aed;border-radius:12px;padding:12px 32px;font-weight:700;color:#a78bfa;font-size:16px;">
+        🔄 ViewModel — AndroidViewModel + StateFlow
+      </div>
+      <div style="color:#4b5563;">⬇️ viewModelScope.launch ⬆️ Result</div>
+      <div style="background:#2d1b69;border:1px solid#7c3aed;border-radius:12px;padding:12px 32px;font-weight:700;color:#a78bfa;font-size:16px;">
+        🗃️ Repository — объединяет API + БД
+      </div>
+      <div style="color:#4b5563;">⬇️ Retrofit / Room ⬆️ данные</div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap;justify-content:center;">
+        <div style="background:#1a1a2e;border:1px solid rgba(124,58,237,0.2);border-radius:10px;padding:10px 20px;">
+          <div style="font-size:12px;color:#6b7280;">RAWG API</div>
+          <div style="font-size:12px;color:#6b7280;">Steam API</div>
+        </div>
+        <div style="background:#1a1a2e;border:1px solid rgba(124,58,237,0.2);border-radius:10px;padding:10px 20px;">
+          <div style="font-size:12px;color:#6b7280;">Room (SQLite)</div>
+          <div style="font-size:12px;color:#6b7280;">SharedPreferences</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Поток данных (на примере деталки)</h3>
+  <div class="step-card">
+    <span class="num">1</span><h4>UI вызывает loadGame(id)</h4>
+    <p>Пользователь нажал на карточку игры → NavHost → DetailScreen</p>
+  </div>
+  <div class="step-card">
+    <span class="num">2</span><h4>ViewModel: загрузка + обработка</h4>
+    <p>viewModelScope.launch → repository.getGameDetails(id, userId) → Result</p>
+  </div>
+  <div class="step-card">
+    <span class="num">3</span><h4>Repository: объединение данных</h4>
+    <p>Асинхронно загружает: детали игры (RAWG) + скриншоты + Reddit + Steam обзоры. Проверяет локальную БД (userStatus, userRating, перевод).</p>
+  </div>
+  <div class="step-card">
+    <span class="num">4</span><h4>ViewModel: обновление состояния</h4>
+    <p>_uiState.value = DetailUiState.Success(game) — StateFlow автоматически уведомляет UI</p>
+  </div>
+  <div class="step-card">
+    <span class="num">5</span><h4>UI: реактивный рендеринг</h4>
+    <p>collectAsState() → when(state) { Loading → ... Success → ... Error → ... }</p>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ===================== DATA LAYER ===================== -->
+<section id="data">
+  <h2><span class="hash">#</span> Data Layer — работа с данными</h2>
+  <p class="desc">Три источника данных: Room (SQLite), Retrofit (API), SharedPreferences (сессия).</p>
+
+  <h3>Room — сущности</h3>
+  <div class="grid-3">
+    <div class="card">
+      <div class="file-path">data/local/GameEntity.kt</div>
+      <pre><span class="kw">@Entity</span>(tableName = <span class="str">"games"</span>, primaryKeys = [<span class="str">"id"</span>, <span class="str">"userId"</span>])
+<span class="kw">data class</span> <span class="ty">GameEntity</span>(
+    <span class="kw">val</span> <span class="va">id</span>: <span class="ty">Int</span>,
+    <span class="kw">val</span> <span class="va">userId</span>: <span class="ty">Int</span> = <span class="nu">0</span>,
+    <span class="kw">val</span> <span class="va">name</span>: <span class="ty">String</span>,
+    <span class="kw">val</span> <span class="va">imageUrl</span>: <span class="ty">String</span>?,
+    <span class="kw">val</span> <span class="va">description</span>: <span class="ty">String</span>?,
+    <span class="kw">val</span> <span class="va">descriptionRu</span>: <span class="ty">String</span>? = <span class="kw">null</span>,
+    <span class="kw">val</span> <span class="va">genres</span>: <span class="ty">String</span>?,
+    <span class="kw">val</span> <span class="va">userStatus</span>: <span class="ty">String</span> = <span class="str">"NONE"</span>,
+    <span class="kw">val</span> <span class="va">userRating</span>: <span class="ty">Float</span> = <span class="nu">0f</span>,
+    <span class="kw">val</span> <span class="va">lastAccessed</span>: <span class="ty">Long</span>? = <span class="kw">null</span>
+)</pre>
+      <p style="font-size:13px;color:#9ca3af;margin-top:4px;">Композитный ключ (gameId + userId) — чтобы у каждого пользователя был свой статус игры.</p>
+    </div>
+
+    <div class="card">
+      <div class="file-path">data/local/UserEntity.kt</div>
+      <pre><span class="kw">@Entity</span>(tableName = <span class="str">"users"</span>)
+<span class="kw">data class</span> <span class="ty">UserEntity</span>(
+    <span class="kw">@PrimaryKey</span>(autoGenerate = <span class="kw">true</span>)
+    <span class="kw">val</span> <span class="va">id</span>: <span class="ty">Int</span> = <span class="nu">0</span>,
+    <span class="kw">val</span> <span class="va">username</span>: <span class="ty">String</span>,
+    <span class="kw">val</span> <span class="va">email</span>: <span class="ty">String</span>,
+    <span class="kw">val</span> <span class="va">passwordHash</span>: <span class="ty">String</span>,
+    <span class="kw">val</span> <span class="va">createdAt</span>: <span class="ty">Long</span> = <span class="nu">System.currentTimeMillis()</span>
+)</pre>
+      <p style="font-size:13px;color:#9ca3af;margin-top:4px;">Пароль хранится в виде SHA-256 хеша с солью.</p>
+    </div>
+
+    <div class="card">
+      <div class="file-path">data/local/GameDao.kt</div>
+      <pre><span class="kw">@Dao</span>
+<span class="kw">interface</span> <span class="ty">GameDao</span> {
+    <span class="kw">@Query</span>(<span class="str">"SELECT * FROM games WHERE userId = :userId AND userStatus != 'NONE'"</span>)
+    <span class="kw">fun</span> <span class="fn">getAllLibraryGames</span>(userId: <span class="ty">Int</span>): <span class="ty">Flow</span>&lt;<span class="ty">List</span>&lt;<span class="ty">GameEntity</span>&gt;&gt;
+
+    <span class="kw">@Insert</span>(onConflict = <span class="ty">OnConflictStrategy</span>.<span class="va">REPLACE</span>)
+    <span class="kw">suspend fun</span> <span class="fn">insertGame</span>(game: <span class="ty">GameEntity</span>)
+
+    <span class="kw">@Delete</span>
+    <span class="kw">suspend fun</span> <span class="fn">deleteGame</span>(game: <span class="ty">GameEntity</span>)
+}</pre>
+      <p style="font-size:13px;color:#9ca3af;margin-top:4px;">Flow для реактивного обновления списка. suspend для одноразовых операций.</p>
+    </div>
+  </div>
+
+  <h3>Repository — объединение API и БД</h3>
+  <div class="card">
+    <div class="file-path">data/repository/GameRepository.kt</div>
+    <pre><span class="kw">class</span> <span class="ty">GameRepository</span>(database: <span class="ty">AppDatabase</span>) {
+    <span class="kw">private val</span> <span class="va">dao</span> = database.<span class="fn">gameDao</span>()
+    <span class="kw">private val</span> <span class="va">api</span> = <span class="ty">RetrofitClient</span>.<span class="va">api</span>
+
+    <span class="cm">// --- API запросы ---</span>
+    <span class="kw">suspend fun</span> <span class="fn">searchGames</span>(query: <span class="ty">String</span>, filters: <span class="ty">SearchFilters</span>, page: <span class="ty">Int</span>): <span class="ty">Result</span>&lt;<span class="ty">Triple</span>&lt;<span class="ty">List</span>&lt;<span class="ty">Game</span>&gt;, <span class="ty">Boolean</span>, <span class="ty">Int</span>&gt;&gt;
+
+    <span class="cm">// --- Объединение API + БД ---</span>
+    <span class="kw">suspend fun</span> <span class="fn">getGameDetails</span>(id: <span class="ty">Int</span>, userId: <span class="ty">Int</span>): <span class="ty">Result</span>&lt;<span class="ty">Game</span>&gt; {
+        <span class="cm">// 1. Параллельно загружаем: детали, скриншоты, Reddit, Steam</span>
+        <span class="cm">// 2. Проверяем локальную БД (userStatus, рейтинг, перевод)</span>
+        <span class="cm">// 3. Переводим описание через ML Kit, если нужно</span>
+        <span class="cm">// 4. Склеиваем всё в Game и возвращаем</span>
+    }
+
+    <span class="cm">// --- Локальные операции ---</span>
+    <span class="kw">fun</span> <span class="fn">getLibraryGames</span>(userId: <span class="ty">Int</span>): <span class="ty">Flow</span>&lt;<span class="ty">List</span>&lt;<span class="ty">Game</span>&gt;&gt;
+    <span class="kw">suspend fun</span> <span class="fn">saveGame</span>(game: <span class="ty">Game</span>, userId: <span class="ty">Int</span>)
+    <span class="kw">suspend fun</span> <span class="fn">deleteGame</span>(game: <span class="ty">Game</span>, userId: <span class="ty">Int</span>)
+}</pre>
+  </div>
+
+  <h3>GameEntity ↔ Domain → Game</h3>
+  <div class="card">
+    <div class="file-path">data/local/GameEntity.kt (extension functions)</div>
+    <pre><span class="cm">// SQL → Domain</span>
+<span class="kw">fun</span> <span class="ty">GameEntity</span>.<span class="fn">toDomain</span>(): <span class="ty">Game</span> = <span class="ty">Game</span>(
+    id = id, name = name, ...
+    description = descriptionRu ?: description,  <span class="cm">// приоритет перевода</span>
+    userStatus = <span class="ty">GameStatus</span>.<span class="fn">valueOf</span>(userStatus),
+    overallRating = <span class="kw">if</span> (overallRating == <span class="nu">0.0</span>) rating * <span class="nu">2</span> <span class="kw">else</span> overallRating
+)
+
+<span class="cm">// Domain → SQL</span>
+<span class="kw">fun</span> <span class="ty">Game</span>.<span class="fn">toEntity</span>(userId: <span class="ty">Int</span> = <span class="nu">0</span>): <span class="ty">GameEntity</span> = <span class="ty">GameEntity</span>(
+    id = id, userId = userId, name = name, ...
+    descriptionRu = <span class="kw">if</span> (description != (descriptionOriginal ?: description)) description <span class="kw">else</span> <span class="kw">null</span>
+)</pre>
+    <p style="font-size:13px;color:#9ca3af;margin-top:4px;">Маппинг между слоями через extension-функции. <code>descriptionRu</code> кэширует перевод.</p>
+  </div>
+
+  <h3>Пароль — SHA-256 + соль</h3>
+  <div class="card">
+    <div class="file-path">utils/PasswordHasher.kt</div>
+    <pre><span class="kw">object</span> <span class="ty">PasswordHasher</span> {
+    <span class="kw">fun</span> <span class="fn">hash</span>(password: <span class="ty">String</span>): <span class="ty">String</span> {
+        <span class="kw">val</span> <span class="va">salt</span> = <span class="ty">ByteArray</span>(<span class="nu">16</span>).<span class="fn">also</span> { <span class="ty">SecureRandom</span>().<span class="fn">nextBytes</span>(it) }
+        <span class="kw">val</span> <span class="va">digest</span> = <span class="ty">MessageDigest</span>.<span class="fn">getInstance</span>(<span class="str">"SHA-256"</span>)
+        digest.<span class="fn">update</span>(salt)
+        <span class="kw">val</span> <span class="va">hash</span> = digest.<span class="fn">digest</span>(password.<span class="fn">toByteArray</span>(<span class="ty">Charsets</span>.<span class="va">UTF_8</span>))
+        <span class="kw">return</span> <span class="str">"</span>${<span class="fn">bytesToHex</span>(salt)}<span class="str">:</span>${<span class="fn">bytesToHex</span>(hash)}<span class="str">"</span>
+    }
+
+    <span class="kw">fun</span> <span class="fn">verify</span>(password: <span class="ty">String</span>, stored: <span class="ty">String</span>): <span class="ty">Boolean</span> {
+        <span class="kw">val</span> <span class="va">parts</span> = stored.<span class="fn">split</span>(<span class="str">":"</span>)
+        <span class="kw">val</span> <span class="va">salt</span> = <span class="fn">hexToBytes</span>(parts[<span class="nu">0</span>])
+        <span class="kw">return</span> <span class="fn">hash</span>(password) == stored  <span class="cm">// повторно хеширует с той же солью</span>
+    }
+}</pre>
+    <p style="font-size:13px;color:#9ca3af;margin-top:4px;">Формат хранения: <code>hex(salt):hex(hash)</code>. Никаких внешних библиотек.</p>
+  </div>
+
+  <h3>SharedPreferences — сессия</h3>
+  <div class="card">
+    <div class="file-path">data/local/PreferencesManager.kt</div>
+    <pre><span class="kw">class</span> <span class="ty">PreferencesManager</span>(context: <span class="ty">Context</span>) {
+    <span class="kw">private val</span> <span class="va">prefs</span> = context.<span class="fn">getSharedPreferences</span>(<span class="str">"gamelock_prefs"</span>, <span class="ty">Context</span>.<span class="va">MODE_PRIVATE</span>)
+
+    <span class="kw">var</span> <span class="va">currentUserId</span>: <span class="ty">Int</span>
+        <span class="fn">get</span>() = prefs.<span class="fn">getInt</span>(<span class="str">"current_user_id"</span>, -<span class="nu">1</span>)
+        <span class="fn">set</span>(value) = prefs.<span class="fn">edit</span>().<span class="fn">putInt</span>(<span class="str">"current_user_id"</span>, value).<span class="fn">apply</span>()
+
+    <span class="kw">val</span> <span class="va">isLoggedIn</span>: <span class="ty">Boolean</span> <span class="fn">get</span>() = currentUserId &gt; <span class="nu">0</span>
+}</pre>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ===================== VIEWMODEL ===================== -->
+<section id="viewmodel">
+  <h2><span class="hash">#</span> ViewModel — управление состоянием</h2>
+  <p class="desc">Каждый экран имеет свою ViewModel, которая наследует AndroidViewModel и использует StateFlow.</p>
+
+  <h3>Шаблон: sealed class + StateFlow</h3>
+  <div class="grid-3">
+    <div class="card">
+      <div class="file-path">ui/screens/search/SearchViewModel.kt</div>
+      <pre><span class="kw">sealed class</span> <span class="ty">SearchUiState</span> {
+    <span class="kw">object</span> <span class="ty">Loading</span> : <span class="ty">SearchUiState</span>()
+    <span class="kw">data class</span> <span class="ty">Success</span>(
+        <span class="kw">val</span> <span class="va">games</span>: <span class="ty">List</span>&lt;<span class="ty">Game</span>&gt;,
+        <span class="kw">val</span> <span class="va">currentPage</span>: <span class="ty">Int</span>,
+        <span class="kw">val</span> <span class="va">totalPages</span>: <span class="ty">Int</span>
+    ) : <span class="ty">SearchUiState</span>()
+    <span class="kw">data class</span> <span class="ty">Error</span>(<span class="kw">val</span> <span class="va">message</span>: <span class="ty">String</span>) : <span class="ty">SearchUiState</span>()
+}
+
+<span class="kw">class</span> <span class="ty">SearchViewModel</span>(app: <span class="ty">Application</span>) : <span class="ty">AndroidViewModel</span>(app) {
+    <span class="kw">private val</span> <span class="va">_uiState</span> = <span class="ty">MutableStateFlow</span>&lt;<span class="ty">SearchUiState</span>&gt;(<span class="ty">SearchUiState</span>.<span class="va">Loading</span>)
+    <span class="kw">val</span> <span class="va">uiState</span>: <span class="ty">StateFlow</span>&lt;<span class="ty">SearchUiState</span>&gt; = _uiState.<span class="fn">asStateFlow</span>()
+
+    <span class="kw">fun</span> <span class="fn">searchGames</span>(query: <span class="ty">String</span>) {
+        viewModelScope.<span class="fn">launch</span> {
+            _uiState.<span class="va">value</span> = <span class="ty">SearchUiState</span>.<span class="va">Loading</span>
+            repository.<span class="fn">searchGames</span>(query).<span class="fn">fold</span>(
+                onSuccess = { _uiState.<span class="va">value</span> = <span class="ty">SearchUiState</span>.<span class="fn">Success</span>(it) },
+                onFailure = { _uiState.<span class="va">value</span> = <span class="ty">SearchUiState</span>.<span class="fn">Error</span>(it.message ?: <span class="str">"Ошибка"</span>) }
+            )
+        }
+    }
+}</pre>
+    </div>
+
+    <div class="card">
+      <div class="file-path">ui/screens/detail/DetailViewModel.kt</div>
+      <pre><span class="kw">class</span> <span class="ty">DetailViewModel</span>(app: <span class="ty">Application</span>) : <span class="ty">AndroidViewModel</span>(app) {
+
+    <span class="kw">private val</span> <span class="va">prefs</span> = <span class="ty">PreferencesManager</span>(app)
+    <span class="kw">private val</span> <span class="va">userId</span>: <span class="ty">Int</span> <span class="fn">get</span>() = prefs.<span class="va">currentUserId</span>
+
+    <span class="kw">fun</span> <span class="fn">loadGame</span>(gameId: <span class="ty">Int</span>) {
+        viewModelScope.<span class="fn">launch</span> {
+            _uiState.<span class="va">value</span> = <span class="ty">DetailUiState</span>.<span class="va">Loading</span>
+            repository.<span class="fn">getGameDetails</span>(gameId, userId).<span class="fn">fold</span>(
+                onSuccess = {
+                    repository.<span class="fn">updateLastAccessed</span>(gameId, userId)
+                    _uiState.<span class="va">value</span> = <span class="ty">DetailUiState</span>.<span class="fn">Success</span>(it)
+                },
+                onFailure = { _uiState.<span class="va">value</span> = <span class="ty">DetailUiState</span>.<span class="fn">Error</span>(it.message ?: <span class="str">"Ошибка"</span>) }
+            )
+        }
+    }
+
+    <span class="kw">fun</span> <span class="fn">saveGameData</span>(game: <span class="ty">Game</span>, status: <span class="ty">GameStatus</span>, rating: <span class="ty">Float</span>, review: <span class="ty">String</span>) {
+        viewModelScope.<span class="fn">launch</span> {
+            <span class="kw">val</span> <span class="va">updated</span> = game.<span class="fn">copy</span>(
+                userStatus = status, userRating = rating,
+                userReview = review, lastAccessed = <span class="ty">System</span>.<span class="fn">currentTimeMillis</span>()
+            )
+            repository.<span class="fn">saveGame</span>(updated, userId)
+            _uiState.<span class="va">value</span> = <span class="ty">DetailUiState</span>.<span class="fn">Success</span>(updated)
+        }
+    }
+}</pre>
+    </div>
+
+    <div class="card">
+      <div class="file-path">ui/screens/library/LibraryViewModel.kt</div>
+      <pre><span class="kw">class</span> <span class="ty">LibraryViewModel</span>(app: <span class="ty">Application</span>) : <span class="ty">AndroidViewModel</span>(app) {
+
+    <span class="cm">// Flow из Room → реактивно обновляется при изменениях БД</span>
+    <span class="kw">private val</span> <span class="va">allGames</span>: <span class="ty">StateFlow</span>&lt;<span class="ty">List</span>&lt;<span class="ty">Game</span>&gt;&gt; =
+        repository.<span class="fn">getLibraryGames</span>(userId)
+            .<span class="fn">stateIn</span>(viewModelScope, <span class="ty">SharingStarted</span>.<span class="fn">WhileSubscribed</span>(<span class="nu">5000</span>), <span class="fn">emptyList</span>())
+
+    <span class="cm">// Комбинируем фильтры: статус + поиск + сортировка</span>
+    <span class="kw">val</span> <span class="va">displayGames</span>: <span class="ty">StateFlow</span>&lt;<span class="ty">List</span>&lt;<span class="ty">Game</span>&gt;&gt; = <span class="fn">combine</span>(
+        allGames, _selectedStatus, _searchQuery, _sortType
+    ) { games, status, query, sort -&gt;
+        <span class="kw">var</span> <span class="va">result</span> = games
+        <span class="kw">if</span> (status != <span class="kw">null</span>) result = result.<span class="fn">filter</span> { it.userStatus == status }
+        <span class="kw">if</span> (query.<span class="fn">isNotBlank</span>()) result = result.<span class="fn">filter</span> { it.name.<span class="fn">contains</span>(query, ignoreCase = <span class="kw">true</span>) }
+        <span class="kw">when</span> (sort) {
+            <span class="ty">SortType</span>.<span class="va">NAME</span> -&gt; result.<span class="fn">sortedBy</span> { it.name }
+            <span class="ty">SortType</span>.<span class="va">RATING</span> -&gt; result.<span class="fn">sortedByDescending</span> { it.overallRating }
+            <span class="ty">SortType</span>.<span class="va">DATE_ADDED</span> -&gt; result.<span class="fn">sortedByDescending</span> { it.lastAccessed ?: <span class="nu">0L</span> }
+        }
+    }.<span class="fn">stateIn</span>(viewModelScope, <span class="ty">SharingStarted</span>.<span class="fn">WhileSubscribed</span>(<span class="nu">5000</span>), <span class="fn">emptyList</span>())
+}</pre>
+    </div>
+  </div>
+
+  <h3>Generation guard — защита от гонок</h3>
+  <div class="card">
+    <p style="margin-bottom:8px;">Если пользователь быстро переключает страницы поиска, старый запрос не должен перезаписать новый результат:</p>
+    <pre><span class="kw">private var</span> <span class="va">loadGeneration</span> = <span class="nu">0L</span>
+
+<span class="kw">fun</span> <span class="fn">goToPage</span>(page: <span class="ty">Int</span>) {
+    loadGeneration++                     <span class="cm">// увеличиваем счётчик</span>
+    <span class="kw">val</span> <span class="va">gen</span> = loadGeneration            <span class="cm">// запоминаем текущее значение</span>
+    viewModelScope.<span class="fn">launch</span> {
+        <span class="kw">val</span> <span class="va">result</span> = repository.<span class="fn">searchGames</span>(...)
+        <span class="kw">if</span> (gen != loadGeneration) <span class="kw">return</span>@launch  <span class="cm">// устарело — игнорируем</span>
+        _uiState.<span class="va">value</span> = <span class="ty">SearchUiState</span>.<span class="fn">Success</span>(result)
+    }
+}</pre>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ===================== UI LAYER ===================== -->
+<section id="ui">
+  <h2><span class="hash">#</span> UI Layer — Jetpack Compose</h2>
+  <p class="desc">Весь интерфейс написан на Jetpack Compose + Material 3. Тёмная тема с фиолетовым акцентом.</p>
+
+  <h3>Навигация</h3>
+  <div class="grid-3">
+    <div class="card">
+      <div class="file-path">MainActivity.kt — Bottom Nav</div>
+      <pre><span class="ty">NavigationBar</span> {
+    <span class="ty">NavigationBarItem</span>(
+        selected = currentRoute == <span class="str">"search"</span>,
+        onClick = { navController.<span class="fn">navigate</span>(<span class="str">"search"</span>) { launchSingleTop = <span class="kw">true</span> } },
+        icon = { <span class="ty">Icon</span>(<span class="ty">Icons</span>.<span class="va">Default</span>.<span class="va">Search</span>, ...) },
+        label = { <span class="ty">Text</span>(<span class="str">"Поиск"</span>) }
+    )
+    <span class="cm">// ... Library, Profile</span>
+}
+
+<span class="ty">NavHost</span>(navController, startDestination = startDest) {
+    <span class="fn">composable</span>(<span class="str">"search"</span>)    { <span class="ty">SearchScreen</span>(...) }
+    <span class="fn">composable</span>(<span class="str">"library"</span>)   { <span class="ty">LibraryScreen</span>(...) }
+    <span class="fn">composable</span>(<span class="str">"profile"</span>)   { <span class="ty">ProfileScreen</span>(...) }
+    <span class="fn">composable</span>(<span class="str">"detail/{gameId}"</span>) { <span class="ty">DetailScreen</span>(...) }
+    <span class="fn">composable</span>(<span class="str">"login"</span>)    { <span class="ty">LoginScreen</span>(...) }
+    <span class="fn">composable</span>(<span class="str">"register"</span>) { <span class="ty">RegisterScreen</span>(...) }
+}</pre>
+    </div>
+
+    <div class="card">
+      <div class="file-path">Состояния экрана в Compose</div>
+      <pre><span class="kw">val</span> <span class="va">uiState</span> <span class="kw">by</span> viewModel.<span class="va">uiState</span>.<span class="fn">collectAsState</span>()
+
+<span class="fn">when</span> (<span class="kw">val</span> <span class="va">state</span> = uiState) {
+    <span class="kw">is</span> <span class="ty">SearchUiState</span>.<span class="va">Loading</span> -&gt; {
+        <span class="ty">ShimmerCard</span>()  <span class="cm">// пульсирующие заглушки</span>
+    }
+    <span class="kw">is</span> <span class="ty">SearchUiState</span>.<span class="va">Success</span> -&gt; {
+        <span class="fn">state</span>.<span class="va">games</span>.<span class="fn">forEachIndexed</span> { index, game -&gt;
+            <span class="ty">AnimatedGameCard</span>(game, index, onClick)
+        }
+        <span class="ty">PaginationBar</span>(state.currentPage, state.totalPages)
+    }
+    <span class="kw">is</span> <span class="ty">SearchUiState</span>.<span class="va">Error</span> -&gt; {
+        <span class="ty">Text</span>(state.message, color = <span class="ty">MaterialTheme</span>.<span class="va">colorScheme</span>.<span class="va">error</span>)
+    }
+}</pre>
+    </div>
+
+    <div class="card">
+      <div class="file-path">Анимация появления карточек</div>
+      <pre><span class="cm">// Каждая карточка появляется с задержкой и анимацией</span>
+<span class="kw">val</span> <span class="va">animProgress</span> = <span class="fn">remember</span> { <span class="ty">Animatable</span>(<span class="nu">0f</span>) }
+
+<span class="ty">LaunchedEffect</span>(<span class="ty">Unit</span>) {
+    <span class="fn">delay</span>(index * <span class="nu">40L</span>)  <span class="cm">// волна: каждая следующая чуть позже</span>
+    animProgress.<span class="fn">animateTo</span>(<span class="mf">1f</span>, tween(<span class="nu">350</span>, easing = <span class="ty">FastOutSlowInEasing</span>))
+}
+
+<span class="ty">LibraryGameCard</span>(
+    modifier = <span class="ty">Modifier</span>.<span class="fn">graphicsLayer</span> {
+        alpha = animProgress.<span class="va">value</span>
+        scaleX = <span class="mf">0.9f</span> + <span class="mf">0.1f</span> * animProgress.<span class="va">value</span>
+        scaleY = <span class="mf">0.9f</span> + <span class="mf">0.1f</span> * animProgress.<span class="va">value</span>
+    }
+)</pre>
+    </div>
+  </div>
+
+  <h3>PaginationBar — кастомный компонент</h3>
+  <div class="card">
+    <pre><span class="cm">// Страничная навигация: ◀ [редактируемое поле] / N ▶</span>
+<span class="ty">Row</span>(
+    modifier = <span class="ty">Modifier</span>.<span class="fn">fillMaxWidth</span>().<span class="fn">padding</span>(...),
+    horizontalArrangement = <span class="ty">Arrangement</span>.<span class="va">Center</span>,
+    verticalAlignment = <span class="ty">Alignment</span>.<span class="va">CenterVertically</span>
+) {
+    <span class="ty">IconButton</span>(onClick = { <span class="fn">onPageSelected</span>(currentPage - <span class="nu">1</span>) }) {
+        <span class="ty">Icon</span>(<span class="ty">Icons</span>.<span class="va">AutoMirrored</span>.<span class="va">Filled</span>.<span class="va">KeyboardArrowLeft</span>, ...)
+    }
+
+    <span class="ty">BasicTextField</span>(
+        value = pageText,
+        onValueChange = { ... },
+        keyboardOptions = <span class="ty">KeyboardOptions</span>(keyboardType = <span class="ty">KeyboardType</span>.<span class="va">Number</span>)
+    )
+
+    <span class="ty">Text</span>(<span class="str">" / </span>$totalPages<span class="str">"</span>, ...)
+
+    <span class="ty">IconButton</span>(onClick = { <span class="fn">onPageSelected</span>(currentPage + <span class="nu">1</span>) }) {
+        <span class="ty">Icon</span>(<span class="ty">Icons</span>.<span class="va">AutoMirrored</span>.<span class="va">Filled</span>.<span class="va">KeyboardArrowRight</span>, ...)
+    }
+}</pre>
+  </div>
+
+  <h3>Тема</h3>
+  <div class="card">
+    <div class="file-path">ui/theme/Color.kt</div>
+    <pre><span class="kw">val</span> <span class="va">DarkBg</span>        = <span class="ty">Color</span>(<span class="mf">0xFF0F0F1A</span>)    <span class="cm">// основной фон</span>
+<span class="kw">val</span> <span class="va">DarkSurface</span>   = <span class="ty">Color</span>(<span class="mf">0xFF1A1A2E</span>)    <span class="cm">// карточки</span>
+<span class="kw">val</span> <span class="va">DarkCard</span>      = <span class="ty">Color</span>(<span class="mf">0xFF222244</span>)    <span class="cm">// карточки игр</span>
+<span class="kw">val</span> <span class="va">AccentPrimary</span> = <span class="ty">Color</span>(<span class="mf">0xFF7C3AED</span>)    <span class="cm">// фиолетовый акцент</span>
+<span class="kw">val</span> <span class="va">VioletDeep</span>    = <span class="ty">Color</span>(<span class="mf">0xFF2D1B69</span>)    <span class="cm">// градиент шапки</span>
+<span class="kw">val</span> <span class="va">VioletLight</span>   = <span class="ty">Color</span>(<span class="mf">0xFFA78BFA</span>)    <span class="cm">// второстепенный текст</span></pre>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ===================== API ===================== -->
+<section id="api">
+  <h2><span class="hash">#</span> API — работа с внешними сервисами</h2>
+  <p class="desc">Приложение использует три внешних API: RAWG (основной), Steam (обзоры), ML Kit (перевод).</p>
+
+  <div class="grid-3">
+    <div class="card">
+      <div class="file-path">data/remote/RawgApiService.kt</div>
+      <pre><span class="kw">interface</span> <span class="ty">RawgApiService</span> {
+    <span class="cm">// Популярные игры (главная страница)</span>
+    <span class="kw">@GET</span>(<span class="str">"games?ordering=-added"</span>)
+    <span class="kw">suspend fun</span> <span class="fn">getPopularGames</span>(
+        <span class="kw">@Query</span>(<span class="str">"key"</span>) apiKey: <span class="ty">String</span>,
+        <span class="kw">@Query</span>(<span class="str">"page"</span>) page: <span class="ty">Int</span>,
+        <span class="kw">@Query</span>(<span class="str">"page_size"</span>) pageSize: <span class="ty">Int</span> = <span class="nu">20</span>
+    ): <span class="ty">GamesResponse</span>
+
+    <span class="cm">// Поиск по названию</span>
+    <span class="kw">@GET</span>(<span class="str">"games"</span>)
+    <span class="kw">suspend fun</span> <span class="fn">searchGames</span>(...): <span class="ty">GamesResponse</span>
+
+    <span class="cm">// Детальная информация + скриншоты</span>
+    <span class="kw">@GET</span>(<span class="str">"games/{id}"</span>)
+    <span class="kw">suspend fun</span> <span class="fn">getGameDetails</span>(<span class="kw">@Path</span> id: <span class="ty">Int</span>, ...): <span class="ty">GameDetailDto</span>
+
+    <span class="kw">@GET</span>(<span class="str">"games/{id}/screenshots"</span>)
+    <span class="kw">suspend fun</span> <span class="fn">getScreenshots</span>(...): <span class="ty">ScreenshotsResponse</span>
+}</pre>
+    </div>
+
+    <div class="card">
+      <div class="file-path">data/remote/SteamApiService.kt</div>
+      <pre><span class="kw">interface</span> <span class="ty">SteamApiService</span> {
+    <span class="cm">// Поиск игры в магазине Steam</span>
+    <span class="kw">@GET</span>(<span class="str">"api/searchstore"</span>)
+    <span class="kw">suspend fun</span> <span class="fn">searchStore</span>(
+        <span class="kw">@Query</span>(<span class="str">"term"</span>) query: <span class="ty">String</span>
+    ): <span class="ty">StoreSearchResponse</span>
+
+    <span class="cm">// Детали игры (описание)</span>
+    <span class="kw">@GET</span>(<span class="str">"api/appdetails"</span>)
+    <span class="kw">suspend fun</span> <span class="fn">getAppDetails</span>(
+        <span class="kw">@Query</span>(<span class="str">"appids"</span>) appId: <span class="ty">Int</span>
+    ): <span class="ty">Map</span>&lt;<span class="ty">String</span>, <span class="ty">AppDetailsResponse</span>&gt;
+
+    <span class="cm">// Обзоры игроков</span>
+    <span class="kw">@GET</span>(<span class="str">"api/reviews"</span>)
+    <span class="kw">suspend fun</span> <span class="fn">getReviews</span>(...): <span class="ty">ReviewsResponse</span>
+}</pre>
+    </div>
+
+    <div class="card">
+      <div class="file-path">data/remote/TranslationService.kt</div>
+      <pre><span class="cm">// ML Kit — определение языка + перевод</span>
+<span class="kw">object</span> <span class="ty">TranslationService</span> {
+    <span class="kw">suspend fun</span> <span class="fn">detectLanguage</span>(text: <span class="ty">String</span>): <span class="ty">SourceLang</span> {
+        <span class="kw">val</span> <span class="va">identifier</span> = <span class="ty">LanguageIdentification</span>.<span class="fn">getClient</span>()
+        <span class="kw">val</span> <span class="va">lang</span> = identifier.<span class="fn">identifyLanguage</span>(text)
+        <span class="kw">return when</span> (lang) {
+            <span class="str">"en"</span> -&gt; <span class="ty">SourceLang</span>.<span class="va">ENGLISH</span>
+            <span class="str">"ru"</span> -&gt; <span class="ty">SourceLang</span>.<span class="va">RUSSIAN</span>
+            <span class="kw">else</span> -&gt; <span class="ty">SourceLang</span>.<span class="va">OTHER</span>
+        }
+    }
+
+    <span class="kw">suspend fun</span> <span class="fn">translate</span>(text: <span class="ty">String</span>, source: <span class="ty">SourceLang</span>): <span class="ty">Result</span>&lt;<span class="ty">String</span>&gt; {
+        <span class="kw">val</span> <span class="va">translator</span> = <span class="ty">Translation</span>.<span class="fn">getClient</span>(
+            <span class="ty">TranslatorOptions</span>.<span class="fn">Builder</span>()
+                .<span class="fn">setSourceLanguage</span>(source.langCode)
+                .<span class="fn">setTargetLanguage</span>(<span class="str">"ru"</span>)
+                .<span class="fn">build</span>()
+        )
+        translator.<span class="fn">downloadModelIfNeeded</span>().<span class="fn">await</span>()
+        <span class="kw">val</span> <span class="va">result</span> = translator.<span class="fn">translate</span>(text).<span class="fn">await</span>()
+        translator.<span class="fn">close</span>()
+        <span class="kw">return</span> <span class="ty">Result</span>.<span class="fn">success</span>(result)
+    }
+}</pre>
+    </div>
+  </div>
+
+  <h3>Как склеиваются данные в getGameDetails</h3>
+  <div class="card">
+    <pre><span class="cm">// GameRepository.getGameDetails(id, userId):</span>
+coroutineScope {
+    <span class="cm">// 1. Параллельные запросы</span>
+    <span class="kw">val</span> <span class="va">detailDef</span>     = <span class="fn">async</span> { api.<span class="fn">getGameDetails</span>(id, API_KEY) }
+    <span class="kw">val</span> <span class="va">screensDef</span>    = <span class="fn">async</span> { api.<span class="fn">getScreenshots</span>(id, API_KEY) }
+    <span class="kw">val</span> <span class="va">redditDef</span>     = <span class="fn">async</span> { api.<span class="fn">getGameRedditPosts</span>(id, API_KEY) }
+
+    <span class="cm">// 2. Проверка наличия в локальной БД</span>
+    <span class="kw">val</span> <span class="va">local</span> = dao.<span class="fn">getGameById</span>(id, userId)
+
+    <span class="cm">// 3. Поиск Steam App ID (из URL или по названию)</span>
+    <span class="kw">val</span> <span class="va">steamSearchDef</span> = <span class="fn">async</span> { steamApi.<span class="fn">searchStore</span>(name) }
+
+    <span class="cm">// 4. Загрузка Steam описания и обзоров</span>
+    <span class="kw">val</span> <span class="va">steamDescDef</span>  = <span class="fn">async</span> { steamApi.<span class="fn">getAppDetails</span>(appId) }
+    <span class="kw">val</span> <span class="va">reviewsDef</span>    = <span class="fn">async</span> { steamApi.<span class="fn">getReviews</span>(appId) }
+
+    <span class="cm">// 5. Перевод описания (если ещё нет кэша)</span>
+    <span class="kw">if</span> (local?.descriptionRu == <span class="kw">null</span> && lang != OTHER)
+        translatedRu = <span class="fn">translate</span>(primaryOriginal, lang)
+
+    <span class="cm">// 6. Склейка всего в Game</span>
+    <span class="ty">Result</span>.<span class="fn">success</span>(detail.<span class="fn">toDomain</span>(screenshots).<span class="fn">copy</span>(
+        description = translatedRu ?: primaryOriginal,
+        steamReviewPct = summary?.<span class="fn">let</span> { ... },
+        storeRatings = listOf(steam, metacritic, rawg),
+        userStatus = local?.userStatus ?: NONE,
+        ...
+    ))
+}</pre>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ===================== AUTH ===================== -->
+<section id="auth">
+  <h2><span class="hash">#</span> Аутентификация и профиль</h2>
+  <p class="desc">Регистрация, вход, привязка игр к пользователю.</p>
+
+  <h3>AuthViewModel — register / login / logout</h3>
+  <div class="grid-3">
+    <div class="card">
+      <div class="file-path">ui/screens/auth/AuthViewModel.kt</div>
+      <pre><span class="kw">fun</span> <span class="fn">register</span>(username, email, password, confirmPassword) {
+    <span class="cm">// 1. Валидация полей</span>
+    <span class="cm">// 2. Проверка: username уже занят?</span>
+    <span class="cm">// 3. Проверка: email уже занят?</span>
+    <span class="cm">// 4. Хеширование пароля</span>
+    <span class="cm">// 5. INSERT в users → получаем id</span>
+    <span class="cm">// 6. Сохраняем userId + username в SharedPreferences</span>
+}
+
+<span class="kw">fun</span> <span class="fn">login</span>(username, password) {
+    <span class="cm">// 1. Поиск пользователя в БД</span>
+    <span class="cm">// 2. Проверка пароля через PasswordHasher.verify()</span>
+    <span class="cm">// 3. Сохраняем сессию в SharedPreferences</span>
+}
+
+<span class="kw">fun</span> <span class="fn">logout</span>() {
+    prefs.<span class="fn">clear</span>()  <span class="cm">// удаляем userId + username</span>
+}</pre>
+    </div>
+
+    <div class="card">
+      <div class="file-path">Привязка игр к пользователю</div>
+      <pre><span class="cm">// GameEntity использует композитный ключ:</span>
+<span class="kw">@Entity</span>(tableName = <span class="str">"games"</span>, primaryKeys = [<span class="str">"id"</span>, <span class="str">"userId"</span>])
+
+<span class="cm">// Все запросы фильтруются по userId:</span>
+<span class="kw">@Query</span>(<span class="str">"SELECT * FROM games WHERE userId = :userId AND userStatus != 'NONE'"</span>)
+<span class="kw">fun</span> <span class="fn">getAllLibraryGames</span>(userId: <span class="ty">Int</span>): <span class="ty">Flow</span>&lt;...&gt;
+
+<span class="cm">// Сохранение передаёт userId:</span>
+<span class="kw">fun</span> <span class="ty">Game</span>.<span class="fn">toEntity</span>(userId: <span class="ty">Int</span>) = <span class="ty">GameEntity</span>(
+    id = id, userId = userId, ...
+)</pre>
+    </div>
+
+    <div class="card">
+      <div class="file-path">ProfileScreen — статистика</div>
+      <pre><span class="kw">data class</span> <span class="ty">ProfileStats</span>(
+    <span class="kw">val</span> <span class="va">total</span>: <span class="ty">Int</span>,
+    <span class="kw">val</span> <span class="va">playing</span>: <span class="ty">Int</span>,
+    <span class="kw">val</span> <span class="va">completed</span>: <span class="ty">Int</span>,
+    <span class="kw">val</span> <span class="va">backlog</span>: <span class="ty">Int</span>
+)
+
+<span class="cm">// Загрузка:</span>
+<span class="kw">val</span> <span class="va">total</span>     = gameDao.<span class="fn">countLibraryGames</span>(userId)
+<span class="kw">val</span> <span class="va">playing</span>   = gameDao.<span class="fn">countGamesByStatus</span>(userId, <span class="str">"PLAYING"</span>)
+<span class="kw">val</span> <span class="va">completed</span> = gameDao.<span class="fn">countGamesByStatus</span>(userId, <span class="str">"COMPLETED"</span>)
+<span class="kw">val</span> <span class="va">backlog</span>   = gameDao.<span class="fn">countGamesByStatus</span>(userId, <span class="str">"BACKLOG"</span>)</pre>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ===================== FEATURES ===================== -->
+<section id="features">
+  <h2><span class="hash">#</span> Полный список фич</h2>
+  <p class="desc">Что умеет приложение — от поиска до удаления.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h4>🔎 Поиск игр</h4>
+      <p>По названию через RAWG. Фильтры по жанрам, магазинам, рейтингу. Сортировка.</p>
+    </div>
+    <div class="card">
+      <h4>📄 Пагинация</h4>
+      <p>◀ [редактируемое поле] / N ▶. Отображается только при totalPages > 1.</p>
+    </div>
+    <div class="card">
+      <h4>📚 Библиотека</h4>
+      <p>4 статуса: PLAYING / COMPLETED / BACKLOG. Фильтр, сортировка, поиск.</p>
+    </div>
+    <div class="card">
+      <h4>⭐ Пользовательский рейтинг</h4>
+      <p>0–10, ползунок + цифра. Сохраняется только при выбранном статусе.</p>
+    </div>
+    <div class="card">
+      <h4>📄 Детальная информация</h4>
+      <p>Описание (с переводом), скриншоты, трейлер, теги, разработчики, ESRB.</p>
+    </div>
+    <div class="card">
+      <h4>📊 Мульти-рейтинг</h4>
+      <p>Steam% + Metacritic + RAWG → общий взвешенный рейтинг.</p>
+    </div>
+    <div class="card">
+      <h4>🌐 Автоперевод</h4>
+      <p>Определение языка через ML Kit. Кэш перевода в Room.</p>
+    </div>
+    <div class="card">
+      <h4>🎬 Трейлеры</h4>
+      <p>Видео-карточка на деталке + клип-превью + сетка скриншотов.</p>
+    </div>
+    <div class="card">
+      <h4>👤 Регистрация/вход</h4>
+      <p>SHA-256 + соль. Привязка всех игр к пользователю (composite PK).</p>
+    </div>
+    <div class="card">
+      <h4>🗑️ Удаление</h4>
+      <p>Крестик на карточке → диалог подтверждения → удаление из БД.</p>
+    </div>
+    <div class="card">
+      <h4>🎨 Анимации</h4>
+      <p>Появление карточек (alpha + scale) с задержкой. Волна сверху вниз.</p>
+    </div>
+    <div class="card">
+      <h4>📱 Адаптивная иконка</h4>
+      <p>gamelock.png на тёмном фоне. API 26+ (adaptive icon) + fallback.</p>
+    </div>
+  </div>
+
+  <h3>Что можно улучшить</h3>
+  <div class="grid-3">
+    <div class="card">
+      <h4>Splash screen</h4>
+      <p>Пока грузится БД — показывать лого вместо белого экрана.</p>
+    </div>
+    <div class="card">
+      <h4>Коллекции</h4>
+      <p>Свои папки в библиотеке («Избранное», «На потом»).</p>
+    </div>
+    <div class="card">
+      <h4>Биометрия</h4>
+      <p>Вход по отпечатку вместо пароля.</p>
+    </div>
+    <div class="card">
+      <h4>Похожие игры</h4>
+      <p>Рекомендации на деталке через RAWG game-series.</p>
+    </div>
+    <div class="card">
+      <h4>Pull-to-refresh</h4>
+      <p>Обновление списка игр свайпом вниз.</p>
+    </div>
+    <div class="card">
+      <h4>Миграция БД</h4>
+      <p>Вместо destructive migration — сохранение данных при обновлении.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ===================== CHECKLIST ===================== -->
+<section id="checklist">
+  <h2><span class="hash">#</span> Чек-лист требований</h2>
+  <p class="desc">Все пункты технического задания выполнены.</p>
+
+  <div class="card" style="padding: 24px;">
+    <ul class="checklist">
+      <li><span class="check">✅</span> <strong>Kotlin</strong> — весь проект написан на Kotlin</li>
+      <li><span class="check">✅</span> <strong>Jetpack Compose</strong> — весь UI на Compose + Material 3</li>
+      <li><span class="check">✅</span> <strong>Минимум 3 экрана</strong> — 6 экранов: Login, Register, Search, Detail, Library, Profile</li>
+      <li><span class="check">✅</span> <strong>Локальное хранилище (Room)</strong> — GameEntity + UserEntity, GameDao + UserDao</li>
+      <li><span class="check">✅</span> <strong>Обработка ошибок</strong> — try/catch, Result, валидация форм, без вылетов</li>
+      <li><span class="check">✅</span> <strong>Состояния экрана</strong> — Loading / Success / Error через sealed class + StateFlow</li>
+      <li><span class="check">✅</span> <strong>MVVM</strong> — AndroidViewModel + StateFlow → Composable collectAsState()</li>
+      <li><span class="check">✅</span> <strong>Асинхронность</strong> — coroutines, Flow, viewModelScope.launch, async/await</li>
+      <li><span class="check">✅</span> <strong>VCS (Git, ≥7 коммитов)</strong> — 9 коммитов в репозитории</li>
+      <li><span class="check">✅</span> <strong>Работа с API</strong> — RAWG (поиск, детали), Steam (обзоры), ML Kit (перевод)</li>
+      <li><span class="check">✅</span> <strong>CRUD</strong> — Create (добавление), Read (список, детали), Update (статус, рейтинг), Delete (удаление)</li>
+    </ul>
+  </div>
+</section>
+
+<hr class="divider">
+
+<section style="text-align:center;padding:40px 0;">
+  <p style="font-size:18px;color:#9ca3af;">GameLock — 2026</p>
+  <p style="font-size:14px;color:#4b5563;margin-top:4px;">Kotlin · Jetpack Compose · Room · Retrofit · MVVM</p>
+  <p style="font-size:13px;color:#4b5563;margin-top:16px;">
+    Исходный код: <a href="https://github.com/YOUR_USERNAME/GameLock" style="color:#7c3aed;text-decoration:none;">github.com/YOUR_USERNAME/GameLock</a>
+  </p>
+</section>
+
+</div>
+
+<footer>
+  Презентация проекта GameLock
+</footer>
+
+</body>
+</html>

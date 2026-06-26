@@ -33,7 +33,10 @@ class DetailViewModel(app: Application) : AndroidViewModel(app) {
     private val _saveEvent = Channel<Unit>(Channel.BUFFERED)
     val saveEvent = _saveEvent.receiveAsFlow()
 
+    private var currentGameId: Int = 0
+
     fun loadGame(gameId: Int) {
+        currentGameId = gameId
         viewModelScope.launch {
             _uiState.value = DetailUiState.Loading
             repository.getGameDetails(gameId, userId).fold(
@@ -44,6 +47,10 @@ class DetailViewModel(app: Application) : AndroidViewModel(app) {
                 onFailure = { _uiState.value = DetailUiState.Error(it.message ?: "Ошибка") }
             )
         }
+    }
+
+    fun retry() {
+        if (currentGameId != 0) loadGame(currentGameId)
     }
 
     fun saveGameData(game: Game, status: GameStatus, rating: Float, review: String) {

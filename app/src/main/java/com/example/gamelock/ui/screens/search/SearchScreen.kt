@@ -298,6 +298,14 @@ fun SearchScreen(onGameClick: (Int) -> Unit, viewModel: SearchViewModel = viewMo
                             style = MaterialTheme.typography.bodyMedium,
                             color = TextMuted
                         )
+                        Spacer(Modifier.height(20.dp))
+                        Button(
+                            onClick = { viewModel.refresh() },
+                            colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text("Повторить", fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
             }
